@@ -1,5 +1,7 @@
 # AI-Powered Sentiment Analysis with Groq
 
+**DockerHub Image:** [https://hub.docker.com/r/anasnasu26/sentiment-genai-app](https://hub.docker.com/r/anasnasu26/sentiment-genai-app)
+
 This repository builds upon the concept of Sentiment Analysis using Hugging Face Transformers and infuses it with Generative AI via the Groq LLM API. The application is served using a Flask REST API and is containerized using Docker.
 
 ## Prerequisites
