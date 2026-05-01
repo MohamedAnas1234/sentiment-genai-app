@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Sentiment Analysis</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+        
+        :root {
+            --primary: #4f46e5;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --text: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: var(--surface);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            background-color: var(--background);
+            border: 1px solid #334155;
+            color: var(--text);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            resize: none;
+            box-sizing: border-box;
+            margin-bottom: 1rem;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .api-key-input {
+            width: 100%;
+            background-color: var(--background);
+            border: 1px solid #334155;
+            color: var(--text);
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #4338ca;
+        }
+
+        button:disabled {
+            background-color: #312e81;
+            cursor: not-allowed;
+        }
+
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: var(--background);
+            display: none;
+        }
+
+        .result-box.visible {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge.positive { background-color: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .badge.negative { background-color: rgba(239, 68, 68, 0.2); color: var(--error); }
+
+        .ai-response {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-top: 0.5rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Mental Health Sentiment Analyzer</h1>
+    <p>Powered by Hugging Face & Groq GenAI</p>
+    
+    <textarea id="textInput" placeholder="How are you feeling today?"></textarea>
+    <button id="analyzeBtn" onclick="analyzeText()">Analyze Sentiment</button>
+
+    <div id="resultBox" class="result-box">
+        <span id="sentimentBadge" class="badge"></span>
+        <div id="aiResponse" class="ai-response"></div>
+    </div>
+</div>
+
+<script>
+    async function analyzeText() {
+        const textInput = document.getElementById('textInput').value;
+        const btn = document.getElementById('analyzeBtn');
+        const resultBox = document.getElementById('resultBox');
+        const badge = document.getElementById('sentimentBadge');
+        const aiResponse = document.getElementById('aiResponse');
+
+        if (!textInput.trim()) return;
+
+        btn.disabled = true;
+        btn.innerText = "Analyzing...";
+        resultBox.classList.remove('visible');
+
+        try {
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    text: textInput
+                })
+            });
+            
+            const data = await response.json();
+
+            if (data.error) {
+                aiResponse.innerText = data.error;
+                badge.innerText = "Error";
+                badge.className = "badge negative";
+            } else {
+                const label = data.sentiment.label;
+                badge.innerText = `${label} (${(data.sentiment.score * 100).toFixed(1)}%)`;
+                badge.className = `badge ${label.toLowerCase()}`;
+                
+                aiResponse.innerText = data.ai_response;
+            }
+            
+            resultBox.classList.add('visible');
+        } catch (err) {
+            aiResponse.innerText = "An error occurred while connecting to the server.";
+            badge.innerText = "Error";
+            badge.className = "badge negative";
+            resultBox.classList.add('visible');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Analyze Sentiment";
+        }
+    }
+</script>
+
+</body>
+</html>
